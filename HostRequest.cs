@@ -13,7 +13,7 @@ namespace OpenLobby
         private int NameLength => Body[8] >> 4;
         private int PasswordLength => Body[8] & 0b1111;
 
-        public IPAddress Host { get => IPAddress.Parse(Body.Slice(0, 4).ToString()??"NULL"); }
+        public IPAddress Host { get => IPAddress.Parse(Body.Slice(0, 4).ToString() ?? "NULL"); }
         public ushort Port { get => OL.GetUshort(5, 6, Body); set => OL.SetUshort(value, 5, 6, Body); }
         public string Name { get => Body.Slice(9, NameLength).ToString(); }
         public string Password { get => Body.Slice(9 + NameLength, PasswordLength).ToString(); }
@@ -70,7 +70,16 @@ namespace OpenLobby
             MaxClients = maxClients;
         }
 
-        public HostRequest(Transmission trms) : base(trms) { }
+        public HostRequest(Transmission trms) : base(trms)
+        {
+            if (Host.AddressFamily is not System.Net.Sockets.AddressFamily.InterNetwork)
+                throw new ArgumentException("host must be IPV4");
+            if (Name.Length < 5 || Name.Length > 16)
+                throw new ArgumentOutOfRangeException($"Lobby name length {Name.Length} is out of range");
+            if (Password.Length < 5 || Password.Length > 16)
+                throw new ArgumentOutOfRangeException($"Lobby password length {Password.Length} is out of range");
+            if (MaxClients == byte.MaxValue)
+                throw new ArgumentException("Max clients cannot be 255");
+        }
     }
-
 }

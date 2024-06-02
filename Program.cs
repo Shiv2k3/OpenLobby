@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using OpenLobby.OneLiners;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 
 namespace OpenLobby
 {
@@ -11,27 +9,48 @@ namespace OpenLobby
 
         private static readonly Client Listener = new(ListenerPort);
         private static readonly Queue<Client> Clients = [];
-        private static readonly Queue<Transmission> Transmissions = [];
+        private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
         private static readonly Dictionary<long, Lobby> OpenLobbies = [];
 
         public static bool Close { get; private set; }
+        public static int TotalFrames { get; private set; }
         public static void Main(string[] args)
-        {            
-            Console.WriteLine("Server loop started");
+        {
+            Console.WriteLine("Server started");
+            _ = AcceptConnections();
             while (!Close)
             {
-                while (!Looping)
+                if (!Looping)
+                {
                     LoopOnce();
+                    TotalFrames++;
+                }
+
+                if (Console.KeyAvailable)
+                {
+                    Close = true;
+                    Console.WriteLine("\nServer closing");
+                }
+            }
+
+            static async Task AcceptConnections()
+            {
+                while (!Close)
+                {
+                    var newClient = await Listener.Accept();
+                    Clients.Enqueue(newClient);
+                    ClientTransmissionsQueue[newClient] = new Queue<Transmission>();
+                }
             }
         }
 
         private static bool Looping { get; set; }
         private static async void LoopOnce()
         {
-            Looping = true;
+            Console.SetCursorPosition(0, Console.CursorTop);
+            Console.Write("Ticking " + TotalFrames);
 
-            // Accept new connections
-            await Listener.Accept();
+            Looping = true;
 
             // Receive transmission
             foreach (var client in Clients)
@@ -40,25 +59,48 @@ namespace OpenLobby
                 if (success)
                 {
 #nullable disable
-                    Transmissions.Enqueue(trms);
+                    ClientTransmissionsQueue[client].Enqueue(trms);
 #nullable enable
                 }
             }
 
             // Read transmissions
-            while (Transmissions.Count != 0)
+            foreach (var ctq in ClientTransmissionsQueue)
             {
-                var trms = Transmissions.Dequeue();
-                switch ((Transmission.Types)trms.TypeID)
-                {
-                    case Transmission.Types.HostRequest:
-                        HostRequest hostReq = new(trms);
-                        long id = NewLobbyID();
-                        Lobby lobby = new(hostReq.Host, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
-                        OpenLobbies.Add(id, lobby);
-                        break;
+                var (client, transmissions) = ctq;
 
-                    default: throw new ArgumentException("Unknown Transmission type");
+                while (transmissions.Count != 0)
+                {
+                    var trms = transmissions.Dequeue();
+                    try
+                    {
+                        switch ((Transmission.Types)trms.TypeID)
+                        {
+                            case Transmission.Types.HostRequest:
+                                HostRequest hostReq = new(trms);
+                                long id = NewLobbyID();
+                                Lobby lobby = new(hostReq.Host, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
+                                OpenLobbies.Add(id, lobby);
+                                Reply success = new(Reply.Code.LobbyCreated);
+                                await client.Send(success.Payload);
+                                break;
+
+                            default: throw new UnknownTransmission("Unknown Transmission type");
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        switch ((Transmission.Types)trms.TypeID)
+                        {
+                            case Transmission.Types.HostRequest:
+                                Reply err = new(Reply.Code.HostingError);
+                                await client.Send(err.Payload);
+                                break;
+
+                        }
+                        continue;
+                    }
+                    catch { throw; }
                 }
             }
 

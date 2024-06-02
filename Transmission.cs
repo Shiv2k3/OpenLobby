@@ -112,4 +112,5 @@ namespace OpenLobby
         public byte[] Payload { get => Stream; }
     }
 
+    internal class UnknownTransmission(string? message) : Exception(message) { }
 }
