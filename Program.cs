@@ -18,7 +18,7 @@ namespace OpenLobby
         public static int TotalFrames { get; private set; }
         public static void Main(string[] args)
         {
-            Console.WriteLine("Server started\n");
+            Console.WriteLine("Server started");
             _ = AcceptConnections();
             while (!Close)
             {

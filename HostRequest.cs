@@ -79,9 +79,9 @@ namespace OpenLobby
         public HostRequest(Transmission trms) : base(trms)
         {
             if (Name.Length < 5 || Name.Length > 16)
-                throw new ArgumentOutOfRangeException($"Lobby name length {Name.Length} is out of range");
+                throw new ArgumentOutOfRangeException($"Lobby name length {NameLength} is out of range");
             if (Password.Length < 5 || Password.Length > 16)
-                throw new ArgumentOutOfRangeException($"Lobby password length {Password.Length} is out of range");
+                throw new ArgumentOutOfRangeException($"Lobby password length {PasswordLength} is out of range");
             if (MaxClients == byte.MaxValue)
                 throw new ArgumentException("Max clients cannot be 255");
         }
