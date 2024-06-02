@@ -2,7 +2,7 @@
 
 About Simple .NET console server for hosting, searching, and joining public game lobbies on the Internet.
 
-#Basically...
+# Basically...
 
 * Lobby- Has a name, id, player list, IP:Port, search visibility, and password.
 
@@ -14,7 +14,7 @@ About Simple .NET console server for hosting, searching, and joining public game
 
 * Disconnections- The server should be notified when a player disconnects.
 
-#The server's perspective
+# The server's perspective
 
 1. Client's request to host a lobby is is created and stored.
 
@@ -25,4 +25,3 @@ About Simple .NET console server for hosting, searching, and joining public game
 4. Host sends connected notification when a client joins. As a security measure, host can ask server if a joining client is authorized.
 
 5. Host sends disconnected notification when a client or itself disconnects, and the lobby is removed once all the clients leave.
-
