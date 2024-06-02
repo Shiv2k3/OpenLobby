@@ -91,6 +91,7 @@ namespace OpenLobby
                                 IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
                                 Lobby lobby = new(rep, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
                                 OpenLobbies.Add(id, lobby);
+
                                 Reply success = new(Reply.Code.LobbyCreated);
                                 Console.WriteLine("\nSending a reply to: " + client.ToString());
                                 await client.Send(success.Payload);
@@ -106,6 +107,7 @@ namespace OpenLobby
                         {
                             case Transmission.Types.HostRequest:
                                 Reply err = new(Reply.Code.HostingError);
+                                Console.WriteLine("\nSending back a failure reply");
                                 await client.Send(err.Payload);
                                 break;
 
