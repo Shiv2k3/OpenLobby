@@ -12,6 +12,7 @@ namespace OpenLobby
         /// True when new transmission is available
         /// </summary>
         public bool Available => Socket.Available >= Transmission.HEADERSIZE;
+        public IPEndPoint? RemoteEndpoint => Socket.RemoteEndPoint as IPEndPoint;
 
         /// <summary>
         /// Create a listening socket

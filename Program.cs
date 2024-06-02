@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Net;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 
 namespace OpenLobby
@@ -12,13 +11,13 @@ namespace OpenLobby
         private static readonly Client Listener = new(ListenerPort);
         private static readonly Queue<Client> Clients = [];
         private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
-        private static readonly Dictionary<long, Lobby> OpenLobbies = [];
+        private static readonly Dictionary<ulong, Lobby> OpenLobbies = [];
 
         public static bool Close { get; private set; }
         public static int TotalFrames { get; private set; }
         public static void Main(string[] args)
         {
-            Console.WriteLine("Server started");
+            Console.WriteLine("Server started\n");
             _ = AcceptConnections();
             while (!Close)
             {
@@ -42,7 +41,7 @@ namespace OpenLobby
                     var newClient = await Listener.Accept();
                     Clients.Enqueue(newClient);
                     ClientTransmissionsQueue[newClient] = new Queue<Transmission>();
-                    Console.WriteLine("New client connected: " + newClient.ToString());
+                    Console.WriteLine("New client connected: " + newClient.ToString() + "\n");
                 }
             }
         }
@@ -81,12 +80,13 @@ namespace OpenLobby
                         {
                             case Transmission.Types.HostRequest:
                                 HostRequest hostReq = new(trms);
-                                long id = NewLobbyID();
-                                Lobby lobby = new(hostReq.Address, hostReq.Port, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
+                                ulong id = NewLobbyID();
+                                IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
+                                Lobby lobby = new(rep, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
                                 OpenLobbies.Add(id, lobby);
                                 Reply success = new(Reply.Code.LobbyCreated);
                                 await client.Send(success.Payload);
-                                Console.WriteLine("Successfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString());
+                                Console.WriteLine("Successfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString() + "\n");
                                 break;
 
                             default: throw new UnknownTransmission("Unknown Transmission type");
@@ -110,11 +110,11 @@ namespace OpenLobby
 
             Looping = false;
 
-            static int NewLobbyID()
+            static ulong NewLobbyID()
             {
-                int id = RandomNumberGenerator.GetInt32(int.MaxValue) + RandomNumberGenerator.GetInt32(int.MaxValue);
+                ulong id = (ulong)(RandomNumberGenerator.GetInt32(0, int.MaxValue) + RandomNumberGenerator.GetInt32(0, int.MaxValue));
                 while (OpenLobbies.ContainsKey(id))
-                    id = RandomNumberGenerator.GetInt32(int.MaxValue) + RandomNumberGenerator.GetInt32(int.MaxValue);
+                    id = (ulong)(RandomNumberGenerator.GetInt32(0, int.MaxValue) + RandomNumberGenerator.GetInt32(0, int.MaxValue));
                 return id;
             }
         }

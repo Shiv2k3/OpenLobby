@@ -14,7 +14,7 @@ namespace OpenLobby
         /// <summary>
         /// Lobby ID
         /// </summary>
-        public long ID;
+        public ulong ID;
         /// <summary>
         /// Lobby name
         /// </summary>
@@ -46,9 +46,9 @@ namespace OpenLobby
         /// <param name="password"></param>
         /// <param name="publicVisible"></param>
         /// <param name="maxClients"></param>
-        public Lobby(IPAddress address, ushort port, long id, string name, string password, bool publicVisible, byte maxClients)
+        public Lobby(IPEndPoint endpoint, ulong id, string name, string password, bool publicVisible, byte maxClients)
         {
-            Host = new IPEndPoint(address, port);
+            Host = endpoint;
             ID = id;
             Name = name;
             Password = password;
