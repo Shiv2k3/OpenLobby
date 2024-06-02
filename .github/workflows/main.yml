@@ -15,6 +15,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
+          debug: true
           envs: PATH
           script: |
                   echo "in path"
