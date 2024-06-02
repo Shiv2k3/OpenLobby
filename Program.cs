@@ -10,6 +10,7 @@ namespace OpenLobby
 
         private static readonly Client Listener = new(ListenerPort);
         private static readonly Queue<Client> Clients = [];
+        private static readonly Queue<Client> Pending = [];
         private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
         private static readonly Dictionary<ulong, Lobby> OpenLobbies = [];
 
@@ -39,8 +40,7 @@ namespace OpenLobby
                 while (!Close)
                 {
                     var newClient = await Listener.Accept();
-                    Clients.Enqueue(newClient);
-                    ClientTransmissionsQueue[newClient] = new Queue<Transmission>();
+                    Pending.Enqueue(newClient);
                     Console.WriteLine("New client connected: " + newClient.ToString() + "\n");
                 }
             }
@@ -49,10 +49,16 @@ namespace OpenLobby
         private static bool Looping { get; set; }
         private static async void LoopOnce()
         {
-            Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write("Ticking " + TotalFrames);
-
             Looping = true;
+
+            // Enqueue pending clients
+            var pending = Pending.ToArray();
+            Pending.Clear();
+            foreach (var client in pending)
+            {
+                Clients.Enqueue(client);
+                ClientTransmissionsQueue[client] = new Queue<Transmission>();
+            }
 
             // Receive transmission
             foreach (var client in Clients)
