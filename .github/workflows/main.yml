@@ -15,6 +15,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
+          envs: PATH
           script: |
                   cd "$PATH"
                   git pull
