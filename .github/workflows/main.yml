@@ -18,4 +18,5 @@ jobs:
           envs: PATH
           script: |
                   cd "$PATH"
+                  echo "in path"
                   git pull
