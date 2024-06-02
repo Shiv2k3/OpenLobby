@@ -8,9 +8,9 @@ namespace OpenLobby
     internal record Lobby
     {
         /// <summary>
-        /// IP address of the lobby host
+        /// Endpoint of the lobby host
         /// </summary>
-        public IPAddress Host;
+        public IPEndPoint Host;
         /// <summary>
         /// Lobby ID
         /// </summary>
@@ -40,20 +40,25 @@ namespace OpenLobby
         /// <summary>
         /// Creates the lobby record
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="address"></param>
         /// <param name="id"></param>
         /// <param name="name"></param>
         /// <param name="password"></param>
         /// <param name="publicVisible"></param>
         /// <param name="maxClients"></param>
-        public Lobby(IPAddress host, long id, string name, string password, bool publicVisible, byte maxClients)
+        public Lobby(IPAddress address, ushort port, long id, string name, string password, bool publicVisible, byte maxClients)
         {
-            Host = host;
+            Host = new IPEndPoint(address, port);
             ID = id;
             Name = name;
             Password = password;
             PublicVisible = publicVisible;
             MaxClients = maxClients;
+        }
+
+        public override string ToString()
+        {
+            return ID + " Name: " + Name + " @" + Host.Address.ToString();
         }
     }
 

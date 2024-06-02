@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 
 namespace OpenLobby
@@ -40,6 +42,7 @@ namespace OpenLobby
                     var newClient = await Listener.Accept();
                     Clients.Enqueue(newClient);
                     ClientTransmissionsQueue[newClient] = new Queue<Transmission>();
+                    Console.WriteLine("New client connected: " + newClient.ToString());
                 }
             }
         }
@@ -79,10 +82,11 @@ namespace OpenLobby
                             case Transmission.Types.HostRequest:
                                 HostRequest hostReq = new(trms);
                                 long id = NewLobbyID();
-                                Lobby lobby = new(hostReq.Host, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
+                                Lobby lobby = new(hostReq.Address, hostReq.Port, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
                                 OpenLobbies.Add(id, lobby);
                                 Reply success = new(Reply.Code.LobbyCreated);
                                 await client.Send(success.Payload);
+                                Console.WriteLine("Successfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString());
                                 break;
 
                             default: throw new UnknownTransmission("Unknown Transmission type");

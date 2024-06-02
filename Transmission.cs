@@ -7,26 +7,29 @@ namespace OpenLobby
     /// </summary>
     internal class Transmission
     {
+        public enum Types
+        {
+            HostRequest,
+            Reply
+        }
+        /// <summary>
+        /// Map of index to Transmission type
+        /// </summary>
+        public static readonly Dictionary<ushort, Type> IndexTransmission = new()
+        {
+            {0, typeof(HostRequest) },
+            {1, typeof(Reply) }
+        };
         /// <summary>
         /// Map of Transmission type to index
         /// </summary>
         public static readonly Dictionary<Type, ushort> TransmissionIndex = new()
         {
 #nullable disable
-            {IndexTransmission[0], 0 }
+            {IndexTransmission[0], 0 },
+            {IndexTransmission[1], 1 }
 #nullable enable
         };
-        /// <summary>
-        /// Map of index to Transmission type
-        /// </summary>
-        public static readonly Dictionary<ushort, Type> IndexTransmission = new()
-        {
-            {0, typeof(HostRequest) }
-        };
-        public enum Types
-        {
-            HostRequest
-        }
 
         /// <summary>
         /// The number of header bytes, 2b TypeID + 2b Length

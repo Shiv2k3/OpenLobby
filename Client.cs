@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 
 namespace OpenLobby
 {
@@ -33,7 +32,7 @@ namespace OpenLobby
         /// <exception cref="ArgumentException">The given socket was not remote</exception>
         public Client(Socket socket)
         {
-            if (socket.RemoteEndPoint is not null)
+            if (socket.RemoteEndPoint is null)
                 throw new ArgumentException("Socket was not remote");
 
             Socket = socket;
@@ -117,6 +116,11 @@ namespace OpenLobby
         {
             Socket remote = await Socket.AcceptAsync(new CancellationToken(Program.Close));
             return new(remote);
+        }
+
+        public override string ToString()
+        {
+            return Socket.RemoteEndPoint.ToString();
         }
     }
 }

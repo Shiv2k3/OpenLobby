@@ -1,4 +1,7 @@
-﻿namespace OpenLobby.OneLiners
+﻿using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace OpenLobby.OneLiners
 {
     internal class OL
     {
@@ -52,6 +55,16 @@
                 count += str.Length;
             }
             return (count <= ushort.MaxValue) ? (ushort)count : throw new ArgumentOutOfRangeException("Strings were too long");
+        }
+
+        public static string StringFromSpan(ArraySegment<byte> span)
+        {
+            return Encoding.ASCII.GetString(span);
+        }
+
+        internal static ReadOnlySpan<char> GetIP(ArraySegment<byte> arraySegment)
+        {
+            return $"{arraySegment[0]}.{arraySegment[1]}.{arraySegment[2]}.{arraySegment[3]}";
         }
     }
 

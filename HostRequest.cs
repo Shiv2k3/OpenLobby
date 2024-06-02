@@ -1,5 +1,6 @@
 ﻿using OpenLobby.OneLiners;
 using System.Net;
+using System.Text;
 
 namespace OpenLobby
 {
@@ -13,10 +14,10 @@ namespace OpenLobby
         private int NameLength => Body[8] >> 4;
         private int PasswordLength => Body[8] & 0b1111;
 
-        public IPAddress Host { get => IPAddress.Parse(Body.Slice(0, 4).ToString() ?? "NULL"); }
+        public IPAddress Address { get => IPAddress.Parse(OL.GetIP(Body.Slice(0, 4))); }
         public ushort Port { get => OL.GetUshort(5, 6, Body); set => OL.SetUshort(value, 5, 6, Body); }
-        public string Name { get => Body.Slice(9, NameLength).ToString(); }
-        public string Password { get => Body.Slice(9 + NameLength, PasswordLength).ToString(); }
+        public string Name { get => OL.StringFromSpan(Body.Slice(9, NameLength)); }
+        public string Password { get => OL.StringFromSpan(Body.Slice(9 + NameLength, PasswordLength)); }
         public bool PublicVisible { get => (Body[7] & Mask) == 1; set => Body[7] = (byte)(Body[7] | (value ? Mask : 0)); }
         public byte MaxClients { get => (byte)(Body[7] & ~Mask); set => Body[7] = (byte)(value & ~Mask); }
 
@@ -28,7 +29,7 @@ namespace OpenLobby
         /// <param name="password">The lobby password used to authenticate clients, 5 < Length < 16</param>
         /// <param name="publicVisible">Is the lobby publicly searchable</param>
         /// <param name="maxClients">Max number of player, must be less than 128</param>
-        public HostRequest(IPEndPoint host, string name, string password, bool publicVisible, byte maxClients) : base(typeof(HostRequest), (ushort)(HEADERSIZE + OL.GetWithinLength(name, password)))
+        public HostRequest(IPEndPoint host, string name, string password, bool publicVisible, byte maxClients) : base(typeof(HostRequest), (ushort)(HEADERSIZE + OL.GetWithinLength(name, password) + 1))
         {
             if (host.AddressFamily is not System.Net.Sockets.AddressFamily.InterNetwork)
                 throw new ArgumentException("host must be IPV4");
@@ -36,15 +37,12 @@ namespace OpenLobby
                 throw new ArgumentOutOfRangeException($"Lobby name length {name.Length} is out of range");
             if (password.Length < 5 || password.Length > 16)
                 throw new ArgumentOutOfRangeException($"Lobby password length {password.Length} is out of range");
-            if (maxClients == byte.MaxValue)
-                throw new ArgumentException("Max clients cannot be 255");
+            if ((maxClients & Mask) == Mask)
+                throw new ArgumentException("Last bit was set");
 
             // Setup ip bytes
-            var ip = host.Address.GetAddressBytes();
-            for (int i = 0; i < ip.Length; i++)
-            {
-                Body[i] = ip[i];
-            }
+            var ipBody = Body.AsMemory(0, 4);
+            host.Address.GetAddressBytes().CopyTo(ipBody);
             Port = (ushort)host.Port;
 
             // Setup name/password length
@@ -52,27 +50,20 @@ namespace OpenLobby
             byte passbyte = (byte)password.Length;
             Body[8] = (byte)(namebyte | passbyte);
 
-            // Copy name
-            var nameBody = Body.Slice(9, name.Length);
-            for (int i = 0; i < name.Length; i++)
-            {
-                nameBody[i] = (byte)name[i];
-            }
+            // Copy name && pass
+            var nameBody = Body.AsMemory(9, name.Length);
+            Encoding.ASCII.GetBytes(name).CopyTo(nameBody);
+            var passBody = Body.AsMemory(9 + name.Length, password.Length);
+            Encoding.ASCII.GetBytes(password).CopyTo(passBody);
 
-            // Copy password
-            var passBody = Body.Slice(9 + name.Length, password.Length);
-            for (int i = 0; i < password.Length; i++)
-            {
-                passBody[i] = (byte)password[i];
-            }
-
+            // one byte
             PublicVisible = publicVisible;
             MaxClients = maxClients;
         }
 
         public HostRequest(Transmission trms) : base(trms)
         {
-            if (Host.AddressFamily is not System.Net.Sockets.AddressFamily.InterNetwork)
+            if (Address.AddressFamily is not System.Net.Sockets.AddressFamily.InterNetwork)
                 throw new ArgumentException("host must be IPV4");
             if (Name.Length < 5 || Name.Length > 16)
                 throw new ArgumentOutOfRangeException($"Lobby name length {Name.Length} is out of range");
