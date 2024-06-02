@@ -1,5 +1,4 @@
 ﻿using OpenLobby.OneLiners;
-using System.Reflection;
 
 namespace OpenLobby
 {
@@ -11,11 +10,22 @@ namespace OpenLobby
         /// <summary>
         /// Map of Transmission type to index
         /// </summary>
-        private static readonly Dictionary<Type, int> TransmissionMap;
-        static Transmission()
+        public static readonly Dictionary<Type, ushort> TransmissionIndex = new()
         {
-            TransmissionMap = Assembly.GetAssembly(typeof(Transmission)).GetTypes().Where(x => x.IsClass && x.BaseType == typeof(Transmission) && !x.IsAbstract)
-            .Select((value, index) => new { Key = index, Value = value }).ToDictionary(pair => pair.Value, pair => pair.Key);
+#nullable disable
+            {IndexTransmission[0], 0 }
+#nullable enable
+        };
+        /// <summary>
+        /// Map of index to Transmission type
+        /// </summary>
+        public static readonly Dictionary<ushort, Type> IndexTransmission = new()
+        {
+            {0, typeof(HostRequest) }
+        };
+        public enum Types
+        {
+            HostRequest
         }
 
         /// <summary>
@@ -57,8 +67,18 @@ namespace OpenLobby
             Stream = new byte[dataLength + HEADERSIZE];
             Body = new(Stream, HEADERSIZE, dataLength);
 
-            TypeID = (ushort)TransmissionMap[transmissionType];
+            TypeID = (ushort)TransmissionIndex[transmissionType];
             Length = dataLength;
+        }
+
+        /// <summary>
+        /// Initalizates transmission using another transmission, shouldn't be used on the base class
+        /// </summary>
+        /// <param name="trms">The transmission to use</param>
+        protected Transmission(Transmission trms)
+        {
+            Stream = trms.Stream;
+            Body = trms.Body;
         }
 
         /// <summary>
@@ -69,22 +89,21 @@ namespace OpenLobby
         {
             Stream = header;
         }
-        public Transmission(byte[] header, byte[] data)
+        /// <summary>
+        /// Create transmission by combining the header and body
+        /// </summary>
+        /// <param name="header">The head of the payload</param>
+        /// <param name="body">The body of the payload</param>
+        public Transmission(byte[] header, byte[] body)
         {
             if (header.Length != HEADERSIZE) throw new($"Incorrect header length: {header.Length}");
 
-            Stream = new byte[HEADERSIZE + data.Length];
+            Stream = new byte[HEADERSIZE + body.Length];
             for (int i = 0; i < Stream.Length; i++)
             {
-                Stream[i] = i < HEADERSIZE ? header[i] : data[i - HEADERSIZE];
+                Stream[i] = i < HEADERSIZE ? header[i] : body[i - HEADERSIZE];
             }
-            Body = new(Stream, HEADERSIZE, data.Length);
-        }
-
-        public Transmission(Transmission trms)
-        {
-            Stream = trms.Stream;
-            Body = trms.Body;
+            Body = new(Stream, HEADERSIZE, body.Length);
         }
 
         /// <summary>

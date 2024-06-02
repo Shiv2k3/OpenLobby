@@ -65,15 +65,15 @@ namespace OpenLobby
 
             return (false, null);
 
-            async Task<Transmission?> CompleteTransmission(Transmission transmission)
+            async Task<Transmission?> CompleteTransmission(Transmission stalled)
             {
-                if (Socket.Available < transmission.Length)
+                if (Socket.Available < stalled.Length)
                     return null;
 
-                byte[] data = new byte[transmission.Length];
+                byte[] data = new byte[stalled.Length];
                 await Receive(data);
 
-                return new Transmission(transmission.Payload, data);
+                return new Transmission(stalled.Payload, data);
             }
         }
 

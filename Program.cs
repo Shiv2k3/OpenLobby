@@ -1,58 +1,76 @@
 ﻿using Microsoft.Extensions.Configuration;
+using OpenLobby.OneLiners;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace OpenLobby
 {
-    internal partial class Program
+    internal class Program
     {
+        private static int ListenerPort => int.Parse(new ConfigurationBuilder().AddUserSecrets<Program>().Build()["LISTEN_PORT"]);
+
+        private static readonly Client Listener = new(ListenerPort);
+        private static readonly Queue<Client> Clients = [];
+        private static readonly Queue<Transmission> Transmissions = [];
+        private static readonly Dictionary<long, Lobby> OpenLobbies = [];
+
         public static bool Close { get; private set; }
-
-        private static Client? Listener;
-        private static readonly Queue<Client> Clients = new();
-        private static readonly Queue<Transmission> Transmissions = new();
-
-        private static async void Main(string[] args)
-        {
-            Console.WriteLine("Listener is being setup");
-
-            IConfiguration config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
-            int port = int.Parse(config["LISTEN_PORT"]);
-            Listener = new(port);
-
-            Console.WriteLine("Listener has been setup");
-            
+        public static void Main(string[] args)
+        {            
             Console.WriteLine("Server loop started");
             while (!Close)
             {
-                // Accept new connections
-                await Listener.Accept();
+                while (!Looping)
+                    LoopOnce();
+            }
+        }
 
-                // Receive transmission
-                foreach (var client in Clients)
-                {
-                    var (success, trms) = await client.TryGetTransmission();
-                    if (success)
-                    {
-                        Transmissions.Enqueue(trms);
-                    }
-                }
+        private static bool Looping { get; set; }
+        private static async void LoopOnce()
+        {
+            Looping = true;
 
-                // Read transmissions
-                while(Transmissions.Count != 0)
+            // Accept new connections
+            await Listener.Accept();
+
+            // Receive transmission
+            foreach (var client in Clients)
+            {
+                var (success, trms) = await client.TryGetTransmission();
+                if (success)
                 {
-                    var trms = Transmissions.Dequeue();
-                    switch (trms.TypeID)
-                    {
-                        case 0: // Host request
-                            HostRequest hostReq = new HostRequest(trms);
-                            // TODO: Create Lobby Class, Make lobby list, new lobby using this req, add it to list
-                            break;
-                        default:
-                            break;
-                    }
+#nullable disable
+                    Transmissions.Enqueue(trms);
+#nullable enable
                 }
+            }
+
+            // Read transmissions
+            while (Transmissions.Count != 0)
+            {
+                var trms = Transmissions.Dequeue();
+                switch ((Transmission.Types)trms.TypeID)
+                {
+                    case Transmission.Types.HostRequest:
+                        HostRequest hostReq = new(trms);
+                        long id = NewLobbyID();
+                        Lobby lobby = new(hostReq.Host, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
+                        OpenLobbies.Add(id, lobby);
+                        break;
+
+                    default: throw new ArgumentException("Unknown Transmission type");
+                }
+            }
+
+            Looping = false;
+
+            static int NewLobbyID()
+            {
+                int id = RandomNumberGenerator.GetInt32(int.MaxValue) + RandomNumberGenerator.GetInt32(int.MaxValue);
+                while (OpenLobbies.ContainsKey(id))
+                    id = RandomNumberGenerator.GetInt32(int.MaxValue) + RandomNumberGenerator.GetInt32(int.MaxValue);
+                return id;
             }
         }
     }
-
-
 }
