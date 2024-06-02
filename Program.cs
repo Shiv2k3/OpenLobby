@@ -68,6 +68,7 @@ namespace OpenLobby
                 {
 #nullable disable
                     ClientTransmissionsQueue[client].Enqueue(trms);
+                    Console.WriteLine("\nReceived new transmission from" + client.ToString());
 #nullable enable
                 }
             }
