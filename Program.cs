@@ -93,21 +93,21 @@ namespace OpenLobby
                                 OpenLobbies.Add(id, lobby);
 
                                 Reply success = new(Reply.Code.LobbyCreated);
-                                Console.WriteLine("\nSending a reply to: " + client.ToString());
                                 await client.Send(success.Payload);
-                                Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString());
+                                Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
                                 break;
 
                             default: throw new UnknownTransmission("Unknown Transmission type");
                         }
                     }
-                    catch (ArgumentException)
+                    catch (ArgumentException e)
                     {
+                        Console.Error.WriteLine(e);
                         switch ((Transmission.Types)trms.TypeID)
                         {
                             case Transmission.Types.HostRequest:
                                 Reply err = new(Reply.Code.HostingError);
-                                Console.WriteLine("\nSending back a failure reply");
+                                Console.WriteLine("\nSending back HostingError reply to: " + client.ToString());
                                 await client.Send(err.Payload);
                                 break;
 
