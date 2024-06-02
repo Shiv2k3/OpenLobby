@@ -17,6 +17,6 @@ jobs:
           port: ${{ secrets.PORT }}
           envs: PATH
           script: |
-                  cd "$PATH"
                   echo "in path"
+                  cd "$PATH"
                   git pull
