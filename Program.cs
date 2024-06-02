@@ -41,7 +41,7 @@ namespace OpenLobby
                 {
                     var newClient = await Listener.Accept();
                     Pending.Enqueue(newClient);
-                    Console.WriteLine("New client connected: " + newClient.ToString() + "\n");
+                    Console.WriteLine("\nNew client connected: " + newClient.ToString());
                 }
             }
         }
@@ -68,7 +68,7 @@ namespace OpenLobby
                 {
 #nullable disable
                     ClientTransmissionsQueue[client].Enqueue(trms);
-                    Console.WriteLine("\nReceived new transmission from" + client.ToString());
+                    Console.WriteLine("\nReceived new transmission from: " + client.ToString());
 #nullable enable
                 }
             }
@@ -92,8 +92,9 @@ namespace OpenLobby
                                 Lobby lobby = new(rep, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
                                 OpenLobbies.Add(id, lobby);
                                 Reply success = new(Reply.Code.LobbyCreated);
+                                Console.WriteLine("\nSending a reply to: " + client.ToString());
                                 await client.Send(success.Payload);
-                                Console.WriteLine("Successfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString() + "\n");
+                                Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString() + " | Requested form" + client.ToString());
                                 break;
 
                             default: throw new UnknownTransmission("Unknown Transmission type");
