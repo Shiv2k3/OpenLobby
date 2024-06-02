@@ -44,38 +44,6 @@ namespace OpenLobby
             get => OL.StringFromSpan(Body.Slice(HEADERSIZE + NameLength, PasswordLength));
         }
 
-        /// <summary>
-        /// Creates a transmission for requesting to host (Client-Side)
-        /// </summary>
-        /// <param name="name">The lobby name, 5 <= Length <= 16</param>
-        /// <param name="password">The lobby password used to authenticate clients, 5 < Length < 16</param>
-        /// <param name="publicVisible">Is the lobby publicly searchable</param>
-        /// <param name="maxClients">Max number of player, must be less than 128</param>
-        public HostRequest(string name, string password, bool publicVisible, byte maxClients) : base(typeof(HostRequest), (ushort)(HEADERSIZE + OL.GetWithinLength(name, password) + 1))
-        {
-            if (name.Length < 5 || name.Length > 16)
-                throw new ArgumentOutOfRangeException($"Lobby name length {name.Length} is out of range");
-            if (password.Length < 5 || password.Length > 16)
-                throw new ArgumentOutOfRangeException($"Lobby password length {password.Length} is out of range");
-            if ((maxClients & MaskPublic) == MaskPublic)
-                throw new ArgumentException("Last bit was set");
-
-            // Setup name/password length
-            byte namebyte = (byte)(name.Length << 4);
-            byte passbyte = (byte)password.Length;
-            Body[0] = (byte)(namebyte | passbyte);
-
-            // Copy name && pass
-            var nameBody = Body.AsMemory(9, name.Length);
-            Encoding.ASCII.GetBytes(name).CopyTo(nameBody);
-            var passBody = Body.AsMemory(9 + name.Length, password.Length);
-            Encoding.ASCII.GetBytes(password).CopyTo(passBody);
-
-            // one byte
-            PublicVisible = publicVisible;
-            MaxClients = maxClients;
-        }
-
         public HostRequest(Transmission trms) : base(trms)
         {
             if (Name.Length < 5 || Name.Length > 16)

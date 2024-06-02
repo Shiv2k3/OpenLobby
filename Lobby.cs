@@ -58,7 +58,7 @@ namespace OpenLobby
 
         public override string ToString()
         {
-            return ID + " Name: " + Name + " @" + Host.Address.ToString();
+            return ID + " Name: " + Name + " @" + Host.ToString();
         }
     }
 
