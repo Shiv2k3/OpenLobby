@@ -1,1 +1,1 @@
-﻿
+﻿Console.WriteLine("Hello, I'm the server");
