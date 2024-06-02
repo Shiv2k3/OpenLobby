@@ -13,4 +13,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        script: whoami
+        PATH: ${{ secrets.PATH }}
+        script: |
+                cd "$PATH"
+                git pull
