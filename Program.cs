@@ -1,17 +1,58 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System.Net;
-using System.Net.Sockets;
 
-Console.WriteLine("Listener socket is being setup");
+namespace OpenLobby
+{
+    internal partial class Program
+    {
+        public static bool Close { get; private set; }
 
-IConfiguration config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
-string portStr = config.GetRequiredSection("LISTEN_PORT").Value;
-int port = int.Parse(portStr);
-IPEndPoint lep = new(IPAddress.Any, port);
-Socket listener = new(SocketType.Stream, ProtocolType.Tcp);
-listener.Bind(lep);
-listener.Listen();
+        private static Client? Listener;
+        private static readonly Queue<Client> Clients = new();
+        private static readonly Queue<Transmission> Transmissions = new();
 
-Console.WriteLine("Listener socket has been setup");
-Console.ReadKey();
-listener.Close();
+        private static async void Main(string[] args)
+        {
+            Console.WriteLine("Listener is being setup");
+
+            IConfiguration config = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
+            int port = int.Parse(config["LISTEN_PORT"]);
+            Listener = new(port);
+
+            Console.WriteLine("Listener has been setup");
+            
+            Console.WriteLine("Server loop started");
+            while (!Close)
+            {
+                // Accept new connections
+                await Listener.Accept();
+
+                // Receive transmission
+                foreach (var client in Clients)
+                {
+                    var (success, trms) = await client.TryGetTransmission();
+                    if (success)
+                    {
+                        Transmissions.Enqueue(trms);
+                    }
+                }
+
+                // Read transmissions
+                while(Transmissions.Count != 0)
+                {
+                    var trms = Transmissions.Dequeue();
+                    switch (trms.TypeID)
+                    {
+                        case 0: // Host request
+                            HostRequest hostReq = new HostRequest(trms);
+                            // TODO: Create Lobby Class, Make lobby list, new lobby using this req, add it to list
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+
+}
