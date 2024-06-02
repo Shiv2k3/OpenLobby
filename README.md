@@ -25,3 +25,7 @@ About Simple .NET console server for hosting, searching, and joining public game
 4. Host sends connected notification when a client joins. As a security measure, host can ask server if a joining client is authorized.
 
 5. Host sends disconnected notification when a client or itself disconnects, and the lobby is removed once all the clients leave.
+
+# Community 
+
+You are free to contribute to the repository is your interested.
