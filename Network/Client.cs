@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace OpenLobby
+namespace OpenLobby.Network
 {
     internal class Client
     {

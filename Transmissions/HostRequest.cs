@@ -1,7 +1,6 @@
 ﻿using OpenLobby.OneLiners;
-using System.Text;
 
-namespace OpenLobby
+namespace OpenLobby.Transmissions
 {
     /// <summary>
     /// A transmission to request to host a lobby
