@@ -1,4 +1,4 @@
-﻿namespace OpenLobby
+﻿namespace OpenLobby.Transmissions
 {
     /// <summary>
     /// Transmission type used to reply to requests

@@ -1,4 +1,5 @@
 ﻿using OpenLobby.OneLiners;
+using OpenLobby.Transmissions;
 
 namespace OpenLobby
 {
@@ -10,7 +11,8 @@ namespace OpenLobby
         public enum Types
         {
             HostRequest,
-            Reply
+            Reply,
+            LobbyQuery,
         }
         /// <summary>
         /// Map of index to Transmission type
@@ -18,7 +20,8 @@ namespace OpenLobby
         public static readonly Dictionary<ushort, Type> IndexTransmission = new()
         {
             {0, typeof(HostRequest) },
-            {1, typeof(Reply) }
+            {1, typeof(Reply) },
+            {2, typeof(LobbyQuery) }
         };
         /// <summary>
         /// Map of Transmission type to index
@@ -27,7 +30,8 @@ namespace OpenLobby
         {
 #nullable disable
             {IndexTransmission[0], 0 },
-            {IndexTransmission[1], 1 }
+            {IndexTransmission[1], 1 },
+            {IndexTransmission[2], 2 },
 #nullable enable
         };
 
