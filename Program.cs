@@ -91,7 +91,7 @@ namespace OpenLobby
                                 HostRequest hostReq = new(trms);
                                 ulong id = NewLobbyID();
                                 IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
-                                Lobby lobby = new(rep, id, hostReq.Name, hostReq.Password, hostReq.PublicVisible, hostReq.MaxClients);
+                                Lobby lobby = new(rep, id, hostReq.Name.Value, hostReq.Password.Value, hostReq.PublicVisible, hostReq.MaxClients);
                                 OpenLobbies.Add(id, lobby);
 
                                 Reply success = new(Reply.Code.LobbyCreated);

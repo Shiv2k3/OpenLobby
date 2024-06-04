@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using OpenLobby.Network;
+using System.Net;
 
 namespace OpenLobby
 {
