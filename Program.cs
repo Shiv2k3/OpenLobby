@@ -99,7 +99,7 @@ namespace OpenLobby
                                 Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
                                 break;
 
-                            default: throw new UnknownTransmission("Unknown Transmission type");
+                            default: throw new UnknownTransmission($"Unknown Transmission type: {trms.TypeID}");
                         }
                     }
                     catch (ArgumentException e)
