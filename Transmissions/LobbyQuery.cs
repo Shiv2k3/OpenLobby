@@ -18,11 +18,11 @@ namespace OpenLobby.Transmissions
         /// Creates query, client-side
         /// </summary>
         /// <param name="search">Lobby name</param>
-        public LobbyQuery(string search) : base(typeof(LobbyQuery), OL.GetByteStringLength(search))
+        public LobbyQuery(string search) : base(typeof(LobbyQuery), (ushort)StringArray.GetHeaderSize(search))
         {
             Search = new(search, Body, 0);
         }
-        public LobbyQuery(params string[] lobbies) : base(typeof(LobbyQuery), OL.GetByteStringLength(lobbies))
+        public LobbyQuery(params string[] lobbies) : base(typeof(LobbyQuery), (ushort)StringArray.GetHeaderSize(lobbies))
         {
             Lobbies = new(Body, 0, lobbies);
         }
@@ -31,7 +31,7 @@ namespace OpenLobby.Transmissions
         /// </summary>
         public LobbyQuery(Transmission trms) : base(trms)
         {
-            Lobbies = new(Body, 0);
+            Search = new(Body, 0);
         }
     }
 }

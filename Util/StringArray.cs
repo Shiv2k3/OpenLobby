@@ -87,6 +87,6 @@ namespace OpenLobby.Transmissions
             }
         }
 
-        public static int GetHeaderSize(params string[] strings) => 1 + OL.GetByteStringLength(strings) + strings.Length;
+        public static int GetHeaderSize(params string[] strings) => 1 + strings.Length + OL.GetByteStringLength(strings);
     }
 }
