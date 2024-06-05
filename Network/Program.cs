@@ -83,9 +83,10 @@ namespace OpenLobby
                 while (transmissions.Count != 0)
                 {
                     var trms = transmissions.Dequeue();
+                    var type = (Transmission.Types)trms.TypeID;
                     try
                     {
-                        switch ((Transmission.Types)trms.TypeID)
+                        switch (type)
                         {
                             case Transmission.Types.HostRequest:
                                 HostRequest hostReq = new(trms);
@@ -99,13 +100,13 @@ namespace OpenLobby
                                 Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
                                 break;
 
-                            default: throw new UnknownTransmission($"Unknown Transmission type: {trms.TypeID}");
+                            default: throw new UnknownTransmission($"Unknown Transmission type: {type}");
                         }
                     }
                     catch (ArgumentException e)
                     {
                         Console.Error.WriteLine(e);
-                        switch ((Transmission.Types)trms.TypeID)
+                        switch (type)
                         {
                             case Transmission.Types.HostRequest:
                                 Reply err = new(Reply.Code.HostingError);
