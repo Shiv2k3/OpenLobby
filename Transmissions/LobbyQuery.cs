@@ -1,13 +1,34 @@
-﻿namespace OpenLobby.Transmissions
+﻿using OpenLobby.OneLiners;
+
+namespace OpenLobby.Transmissions
 {
     internal class LobbyQuery : Transmission
     {
-        public TString Search;
-        // TODO:
-        // think of some query parameters
-        public LobbyQuery(Transmission trms) : base(trms) 
+        /// <summary>
+        /// The search parameter
+        /// </summary>
+        public ByteString? Search;
+
+        /// <summary>
+        /// The query result
+        /// </summary>
+        public StringArray? Lobbies;
+
+        /// <summary>
+        /// Creates query, client-side
+        /// </summary>
+        /// <param name="search">Lobby name</param>
+        public LobbyQuery(string search) : base(typeof(LobbyQuery), OL.GetByteStringLength(search))
         {
-            // Ensure all parameters are valid
+            Search = new(search, Body, 0);
+        }
+
+        /// <summary>
+        /// Creates query reply, server-side
+        /// </summary>
+        public LobbyQuery(Transmission trms) : base(trms)
+        {
+            Lobbies = new(Body, 0);
         }
     }
 }

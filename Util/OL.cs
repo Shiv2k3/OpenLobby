@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using OpenLobby.Transmissions;
+using System.Text;
 
 namespace OpenLobby.OneLiners
 {
@@ -46,19 +47,14 @@ namespace OpenLobby.OneLiners
         /// <param name="strings">The strings to count</param>
         /// <returns>Length if Length is less than <seealso cref="ushort.MaxValue"/> </returns>
         /// <exception cref="ArgumentOutOfRangeException">The total Length of the strings were too long</exception>
-        public static ushort GetWithinLength(params string[] strings)
+        public static ushort GetByteStringLength(params string[] strings)
         {
-            int count = 0;
+            int count = strings.Length * ByteString.HEADERSIZE;
             foreach (var str in strings)
             {
                 count += str.Length;
             }
             return (count <= ushort.MaxValue) ? (ushort)count : throw new ArgumentOutOfRangeException("Strings were too long");
-        }
-
-        public static string StringFromSpan(ArraySegment<byte> span)
-        {
-            return Encoding.ASCII.GetString(span);
         }
 
         internal static ReadOnlySpan<char> GetIP(ArraySegment<byte> arraySegment)
