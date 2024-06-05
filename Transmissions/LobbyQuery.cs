@@ -22,7 +22,10 @@ namespace OpenLobby.Transmissions
         {
             Search = new(search, Body, 0);
         }
-
+        public LobbyQuery(params string[] lobbies) : base(typeof(LobbyQuery), OL.GetByteStringLength(lobbies))
+        {
+            Lobbies = new(Body, 0, lobbies);
+        }
         /// <summary>
         /// Creates query reply, server-side
         /// </summary>

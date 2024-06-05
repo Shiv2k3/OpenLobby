@@ -89,17 +89,34 @@ namespace OpenLobby
                         switch (type)
                         {
                             case Transmission.Types.HostRequest:
-                                HostRequest hostReq = new(trms);
-                                ulong id = NewLobbyID();
-                                IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
-                                Lobby lobby = new(rep, id, hostReq.Name.Value, hostReq.Password.Value, hostReq.Visible.Value > 0, hostReq.MaxClients.Value);
-                                OpenLobbies.Add(id, lobby);
+                                {
+                                    HostRequest hostReq = new(trms);
+                                    ulong id = NewLobbyID();
+                                    IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
+                                    Lobby lobby = new(rep, id, hostReq.Name.Value, hostReq.Password.Value, hostReq.Visible.Value > 0, hostReq.MaxClients.Value);
+                                    OpenLobbies.Add(id, lobby);
 
-                                Reply success = new(Reply.Code.LobbyCreated);
-                                await client.Send(success.Payload);
-                                Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
-                                break;
+                                    Reply success = new(Reply.Code.LobbyCreated);
+                                    await client.Send(success.Payload);
+                                    Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
 
+                                    break;
+                                }
+                            case Transmission.Types.LobbyQuery:
+                                {
+                                    LobbyQuery lq = new(trms);
+                                    var r = OpenLobbies.Values.ToArray();
+                                    var s = new string[r.Length];
+                                    for (int i = 0; i < s.Length; i++)
+                                    {
+                                        s[i] = r[i].Name;
+                                    }
+                                    lq = new(s);
+                                    await client.Send(lq.Payload);
+                                    Console.WriteLine("\nSend back lobby query result to: " + client.ToString());
+
+                                    break;
+                                }
                             default: throw new UnknownTransmission($"Unknown Transmission type: {type}");
                         }
                     }
