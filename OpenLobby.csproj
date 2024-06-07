@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenLobby.TransmissionUtility\OpenLobby.Utility.csproj" />
+    <ProjectReference Include="..\OpenLobby.Utility\OpenLobby.Utility.csproj" />
   </ItemGroup>
 
 </Project>

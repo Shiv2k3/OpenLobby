@@ -5,7 +5,7 @@ VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenLobby", "OpenLobby.csproj", "{6F611CA9-B70E-446E-86E3-2EDD724B7473}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenLobby.Utility", "..\OpenLobby.TransmissionUtility\OpenLobby.Utility.csproj", "{F7B10C2A-9DCD-42F0-B51D-9DA3A8408643}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenLobby.Utility", "..\OpenLobby.Utility\OpenLobby.Utility.csproj", "{44C7BF23-E6D9-4413-AF01-5022B41C8052}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{6F611CA9-B70E-446E-86E3-2EDD724B7473}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F611CA9-B70E-446E-86E3-2EDD724B7473}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F611CA9-B70E-446E-86E3-2EDD724B7473}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7B10C2A-9DCD-42F0-B51D-9DA3A8408643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7B10C2A-9DCD-42F0-B51D-9DA3A8408643}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7B10C2A-9DCD-42F0-B51D-9DA3A8408643}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7B10C2A-9DCD-42F0-B51D-9DA3A8408643}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44C7BF23-E6D9-4413-AF01-5022B41C8052}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44C7BF23-E6D9-4413-AF01-5022B41C8052}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44C7BF23-E6D9-4413-AF01-5022B41C8052}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44C7BF23-E6D9-4413-AF01-5022B41C8052}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,7 +9,17 @@ namespace OpenLobby;
 
 class Program
 {
-    private static int ListenerPort => int.Parse(new ConfigurationBuilder().AddUserSecrets<Program>().Build()["LISTEN_PORT"]);
+    private static int ListenerPort
+    {
+        get
+        {
+            var p = new ConfigurationBuilder().AddUserSecrets<Program>().Build()["LISTEN_PORT"];
+            if (p is not null)
+                return int.Parse(p);
+
+            throw new ArgumentException("LISTEN_PORT is not defined");
+        }
+    }
 
     private static readonly Client Listener = new(ListenerPort);
     private static readonly Queue<Client> Clients = [];
@@ -44,7 +54,7 @@ class Program
         {
             while (!Close)
             {
-                var newClient = await Listener.Accept(CloseTokenSource.Token);
+                var newClient = await Listener.Accept();
                 Pending.Enqueue(newClient);
                 Console.WriteLine("\nNew client connected: " + newClient.ToString());
             }
