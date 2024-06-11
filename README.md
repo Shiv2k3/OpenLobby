@@ -1,8 +1,9 @@
 # OpenLobby
 
 A Simple .NET console server for hosting, searching, and joining public game lobbies on the Internet.
+Work is in progress!
 
-# Basically...
+# The Basics
 
 * Lobby- Has a name, ID, clients list, IP:Port, search visibility, and password.
 
@@ -14,6 +15,3 @@ A Simple .NET console server for hosting, searching, and joining public game lob
 
 * Disconnections- The Server is notified when a client disconnects.
 * 
-# Community 
-
-You are free to contribute.
