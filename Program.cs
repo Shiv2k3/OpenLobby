@@ -3,7 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using OpenLobby.Utility.Network;
 using OpenLobby.Utility.Transmissions;
-using OpenLobby.Utility.Util;
+using OpenLobby.Utility.Utils;
 
 namespace OpenLobby;
 
@@ -30,7 +30,7 @@ class Program
     private static readonly CancellationTokenSource CloseTokenSource = new();
     public static bool Close { get; private set; }
     public static int TotalFrames { get; private set; }
-    public static void Main(string[] args)
+    public static void Main()
     {
         Console.WriteLine("Server started");
         _ = AcceptConnections();
@@ -62,7 +62,7 @@ class Program
     }
 
     private static bool Looping { get; set; }
-    private static async void LoopOnce()
+    private static void LoopOnce()
     {
         Looping = true;
 
@@ -78,7 +78,7 @@ class Program
         // Receive transmission
         foreach (var client in Clients)
         {
-            var (success, trms) = await client.TryGetTransmission();
+            var (success, trms) = client.TryGetTransmission();
             if (success)
             {
 #nullable disable
@@ -96,58 +96,91 @@ class Program
             while (transmissions.Count != 0)
             {
                 var trms = transmissions.Dequeue();
-                var type = (Transmission.Types)trms.TypeID;
+                var type = Transmission.TransmisisonType.Host;
+                try { type = trms.Type; }
+                catch (Exception)
+                {
+                    Console.WriteLine("\nUnable to extract transmission type");
+                    continue;
+                }
+
                 try
                 {
+                    Console.Write($"\nReceived {type} form: " + client.ToString());
                     switch (type)
                     {
-                        case Transmission.Types.HostRequest:
+                        case Transmission.TransmisisonType.Host:
                             {
                                 HostRequest hostReq = new(trms);
                                 ulong id = NewLobbyID();
                                 IPEndPoint rep = client.RemoteEndpoint ?? throw new ArgumentException("Not a remote endpoit");
-                                Lobby lobby = new(rep, id, hostReq.Name.Value, hostReq.Password.Value, hostReq.Visible.Value > 0, hostReq.MaxClients.Value);
+                                Lobby lobby = new(rep, id, hostReq.Name.Value, hostReq.Password.Value, hostReq.Visible.AsBool, hostReq.MaxClients.Value);
                                 OpenLobbies.Add(id, lobby);
 
-                                Reply success = new(Reply.Code.LobbyCreated);
-                                await client.Send(success.Payload);
+                                Reply success = new(Reply.Code.HostingSuccess);
+                                client.Send(success.Payload);
                                 Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
 
                                 break;
                             }
-                        case Transmission.Types.LobbyQuery:
+                        case Transmission.TransmisisonType.Query:
                             {
-                                LobbyQuery lq = new(trms);
-                                var r = OpenLobbies.Values.ToArray();
-                                var s = new string[r.Length];
-                                for (int i = 0; i < s.Length; i++)
+                                var idNamePair = OpenLobbies.ToArray();
+                                var result = new string[idNamePair.Length*2];
+                                for (int i = 0; i < idNamePair.Length; i++)
                                 {
-                                    s[i] = r[i].Name;
+                                    result[i * 2] = idNamePair[i].Key.ToString();
+                                    result[i * 2 + 1] = idNamePair[i].Value.Name;
                                 }
-                                lq = new(s);
-                                await client.Send(lq.Payload);
-                                Console.WriteLine("\nSend back lobby query result to: " + client.ToString());
+
+                                LobbyQuery query = new(trms, false);
+                                query = new(result);
+                                client.Send(query.Payload);
+                                Console.WriteLine("\nSent back lobby query result to: " + client.ToString());
 
                                 break;
                             }
-                        default: throw new UnknownTransmission($"Unknown Transmission type: {type}");
+                        case Transmission.TransmisisonType.Join:
+                            {
+                                JoinRequest jr = new(trms, false);
+                                if (jr.LobbyID is null || jr.LobbyPassword is null)
+                                {
+                                    Console.Write("\nJoin request was invalid");
+                                    break;
+                                }
+
+                                if (ulong.TryParse(jr.LobbyID.Value, out var id) && OpenLobbies.ContainsKey(id))
+                                {
+                                    // Check password
+                                    if (OpenLobbies[id].Password == jr.LobbyPassword.Value)
+                                    {
+                                        OpenLobbies[id].JoinedClients.Add(client);
+                                        Console.WriteLine("\nAdded client to lobby: " + OpenLobbies[id].ToString());
+                                    }
+                                    else
+                                    {
+                                        Reply r = new(Reply.Code.WrongPassword);
+                                        client.Send(r.Payload);
+                                        Console.Write("\nIncorrect password was provided");
+                                    }
+                                }
+
+                                break;
+                            }
+                        default: throw new UnknownTransmission();
                     }
                 }
-                catch (ArgumentException e)
+                catch (UnknownTransmission)
+                {
+                    Console.WriteLine("\nSkipping unknown transmisison type");
+                }
+                catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
-                    switch (type)
-                    {
-                        case Transmission.Types.HostRequest:
-                            Reply err = new(Reply.Code.HostingError);
-                            Console.WriteLine("\nSending back HostingError reply to: " + client.ToString());
-                            await client.Send(err.Payload);
-                            break;
-
-                    }
-                    continue;
+                    Reply err = new(Reply.ErrorTypeCodeMap[type]);
+                    Console.WriteLine($"\nSending back {err.ReplyCode} reply to: " + client.ToString());
+                    client.Send(err.Payload);
                 }
-                catch { throw; }
             }
         }
 
