@@ -54,9 +54,16 @@ class Program
         {
             while (!Close)
             {
-                var newClient = await Listener.Accept();
-                Pending.Enqueue(newClient);
-                Console.WriteLine("\nNew client connected: " + newClient.ToString());
+                try
+                {
+                    // Not sure how to pass cancellation token
+                    var newClient = await Listener.Accept(CloseTokenSource.Token);
+                    Pending.Enqueue(newClient);
+                    Console.WriteLine("\nNew client connected: " + newClient.ToString());
+                }
+                catch
+                {
+                }
             }
         }
     }
@@ -149,13 +156,16 @@ class Program
                                     break;
                                 }
 
-                                if (ulong.TryParse(jr.LobbyID.Value, out var id) && OpenLobbies.ContainsKey(id))
+                                if (ulong.TryParse(jr.LobbyID.Value, out var id) && OpenLobbies.TryGetValue(id, out Lobby? lobby))
                                 {
                                     // Check password
-                                    if (OpenLobbies[id].Password == jr.LobbyPassword.Value)
+                                    if (lobby.Password == jr.LobbyPassword.Value)
                                     {
-                                        OpenLobbies[id].JoinedClients.Add(client);
-                                        Console.WriteLine("\nAdded client to lobby: " + OpenLobbies[id].ToString());
+                                        lobby.JoinedClients.Add(client);
+                                        Console.WriteLine("\nAdded client to lobby: " + lobby.ToString());
+                                        string ipPort = lobby.Host.Address.MapToIPv4().ToString() + ":" + lobby.Host.Port;
+                                        jr = new(ipPort);
+                                        client.Send(jr.Payload);
                                     }
                                     else
                                     {

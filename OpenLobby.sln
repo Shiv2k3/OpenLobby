@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenLobby", "OpenLobby.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenLobby.Utility", "..\OpenLobby.Utility\OpenLobby.Utility.csproj", "{44C7BF23-E6D9-4413-AF01-5022B41C8052}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenLobby.Utility.Tests", "..\OpenLobby.Utility.Tests\OpenLobby.Utility.Tests.csproj", "{DD097D5E-5A9D-4C64-A9D0-BA87D1289E49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenLobby.Utility.Tests", "..\OpenLobby.Utility.Tests\OpenLobby.Utility.Tests.csproj", "{DD097D5E-5A9D-4C64-A9D0-BA87D1289E49}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utility", "Utility", "{AF2C7537-327B-4C0F-9E44-ED85962DA979}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{44C7BF23-E6D9-4413-AF01-5022B41C8052} = {AF2C7537-327B-4C0F-9E44-ED85962DA979}
+		{DD097D5E-5A9D-4C64-A9D0-BA87D1289E49} = {AF2C7537-327B-4C0F-9E44-ED85962DA979}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {209B8222-02C2-45BE-BC16-33CA14ECA3B9}
