@@ -28,25 +28,23 @@ class Program
     private static readonly Dictionary<ulong, Lobby> OpenLobbies = [];
 
     private static readonly CancellationTokenSource CloseTokenSource = new();
-    public static bool Close { get; private set; }
-    public static int TotalFrames { get; private set; }
+    public static bool Closing { get; private set; }
     public static void Main()
     {
         Console.WriteLine("Server started");
         _ = AcceptConnections();
-        while (!Close)
+        while (!Closing)
         {
             if (!Looping)
             {
                 LoopOnce();
-                TotalFrames++;
             }
 
             if (Console.KeyAvailable)
             {
-                Close = true;
-                CloseTokenSource.Cancel();
+                Closing = true;
                 Console.WriteLine("\nServer closing");
+                CloseTokenSource.Cancel();
             }
         }
 
@@ -56,7 +54,6 @@ class Program
             {
                 try
                 {
-                    // Not sure how to pass cancellation token
                     var newClient = await Listener.Accept(CloseTokenSource.Token);
                     Pending.Enqueue(newClient);
                     Console.WriteLine("\nNew client connected: " + newClient.ToString());
