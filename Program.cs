@@ -50,7 +50,7 @@ class Program
 
         static async Task AcceptConnections()
         {
-            while (!Close)
+            while (!Closing)
             {
                 try
                 {
