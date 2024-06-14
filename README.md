@@ -1,19 +1,14 @@
 # OpenLobby
 
 A Simple .NET console server for hosting, searching, and joining public game lobbies on the Internet.
+Work is in progress!
 
-# Basically...
+# The Basics
 
-* Lobby- Has a name, ID, clients list, IP:Port, search visibility, and password.
+* Host Lobby - Clients send Lobby info and server creates a Lobby using the info.
 
-* Post Lobby- Clients send their info and server creates a Lobby using the info.
+* Search Lobbies - Clients send Lobby queries with query parameters and server will send back results.
 
-* Lobby Search- Clients send Lobby queries with query parameters, i.e. Lobby name.
+* Join Lobby - Clients receive Lobby host's IP:Port if they provide the correct password for the requested Lobby.
 
-* Join Lobby- Clients receive Lobby host's IP:Port if they provide the correct password for the requested Lobby.
-
-* Disconnections- The Server is notified when a client disconnects.
-* 
-# Community 
-
-You are free to contribute.
+* Disconnections - The Server is notified when a client disconnects and the Lobby will be closed when all clients (including host) disconnect.
