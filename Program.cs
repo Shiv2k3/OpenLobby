@@ -43,6 +43,7 @@ class Program
                 Console.WriteLine("Server closing");
                 CloseTokenSource.Cancel();
                 CloseConnections();
+                Console.WriteLine("Server closed");
             }
         }
 
@@ -53,6 +54,7 @@ class Program
                 Reply dc = new(Reply.Code.Disconnect);
                 client.Send(dc.Payload);
                 client.Disconnect();
+                Console.WriteLine("Disconnected client:" + client);
             }
         }
         static async Task AcceptConnections()
