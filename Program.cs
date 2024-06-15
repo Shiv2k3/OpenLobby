@@ -22,7 +22,7 @@ class Program
     }
 
     private static readonly Client Listener = new(ListenerPort);
-    private static readonly Queue<Client> Clients = [];
+    private static readonly List<Client> Clients = [];
     private static readonly Queue<Client> PendingConnected = [];
     private static readonly Queue<Client> PendingDisconnected = [];
     private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
@@ -42,12 +42,12 @@ class Program
                 Closing = true;
                 Console.WriteLine("Server closing");
                 CloseTokenSource.Cancel();
-                CloseConnectionsAsync();
+                CloseConnections();
                 Console.WriteLine("Server closed");
             }
         }
 
-        static void CloseConnectionsAsync()
+        static void CloseConnections()
         {
             foreach (var client in Clients)
             {
@@ -81,7 +81,7 @@ class Program
         PendingConnected.Clear();
         foreach (var client in pending)
         {
-            Clients.Enqueue(client);
+            Clients.Add(client);
             ClientTransmissionsQueue[client] = new Queue<Transmission>();
         }
 
@@ -217,6 +217,7 @@ class Program
             var client = PendingDisconnected.Dequeue();
             ClientTransmissionsQueue.Remove(client);
             client.Disconnect();
+            Clients.Remove(client);
             Console.WriteLine("Client has been disconnected" + client.ToString());
         }
 
