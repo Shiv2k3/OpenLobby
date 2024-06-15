@@ -51,8 +51,9 @@ class Program
         {
             foreach (var client in Clients)
             {
-                Reply dc = new(Reply.Code.Disconnect);
-                client.Send(dc.Payload).Wait();
+                Reply dc = new(Reply.Code.DisconnectInit);
+                _ = client.Send(dc.Payload);
+                Thread.Sleep(1000);
                 client.Disconnect();
                 Console.WriteLine("Disconnected client:" + client.ToString());
             }
@@ -185,7 +186,7 @@ class Program
                                 Reply r = new(trms);
                                 switch (r.ReplyCode)
                                 {
-                                    case Reply.Code.Disconnect:
+                                    case Reply.Code.DisconnectInit:
                                         {
                                             PendingDisconnected.Enqueue(client);
                                             Console.WriteLine("Client has been added to disconnection queue: " + client);
@@ -216,6 +217,8 @@ class Program
         {
             var client = PendingDisconnected.Dequeue();
             ClientTransmissionsQueue.Remove(client);
+            Reply da = new(Reply.Code.DisconnectAck);
+            client.Send(da.Payload).Wait();
             client.Disconnect();
             Clients.Remove(client);
             Console.WriteLine("Client has been disconnected" + client.ToString());
