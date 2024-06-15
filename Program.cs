@@ -23,7 +23,8 @@ class Program
 
     private static readonly Client Listener = new(ListenerPort);
     private static readonly Queue<Client> Clients = [];
-    private static readonly Queue<Client> Pending = [];
+    private static readonly Queue<Client> PendingConnected = [];
+    private static readonly Queue<Client> PendingDisconnected = [];
     private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
     private static readonly Dictionary<ulong, Lobby> OpenLobbies = [];
 
@@ -35,19 +36,25 @@ class Program
         _ = AcceptConnections();
         while (!Closing)
         {
-            if (!Looping)
-            {
-                LoopOnce();
-            }
-
+            LoopOnce();
             if (Console.KeyAvailable)
             {
                 Closing = true;
-                Console.WriteLine("\nServer closing");
+                Console.WriteLine("Server closing");
                 CloseTokenSource.Cancel();
+                CloseConnections();
             }
         }
 
+        static void CloseConnections()
+        {
+            foreach (var client in Clients)
+            {
+                Reply dc = new(Reply.Code.Disconnect);
+                client.Send(dc.Payload);
+                client.Disconnect();
+            }
+        }
         static async Task AcceptConnections()
         {
             while (!Closing)
@@ -55,8 +62,8 @@ class Program
                 try
                 {
                     var newClient = await Listener.Accept(CloseTokenSource.Token);
-                    Pending.Enqueue(newClient);
-                    Console.WriteLine("\nNew client connected: " + newClient.ToString());
+                    PendingConnected.Enqueue(newClient);
+                    Console.WriteLine("New client connected: " + newClient.ToString());
                 }
                 catch
                 {
@@ -65,14 +72,11 @@ class Program
         }
     }
 
-    private static bool Looping { get; set; }
     private static void LoopOnce()
     {
-        Looping = true;
-
-        // Enqueue pending clients
-        var pending = Pending.ToArray();
-        Pending.Clear();
+        // Enqueue pending connected clients
+        var pending = PendingConnected.ToArray();
+        PendingConnected.Clear();
         foreach (var client in pending)
         {
             Clients.Enqueue(client);
@@ -87,7 +91,7 @@ class Program
             {
 #nullable disable
                 ClientTransmissionsQueue[client].Enqueue(trms);
-                Console.WriteLine("\nReceived new transmission from: " + client.ToString());
+                Console.WriteLine("Received new transmission from: " + client.ToString());
 #nullable enable
             }
         }
@@ -104,13 +108,13 @@ class Program
                 try { type = trms.Type; }
                 catch (Exception)
                 {
-                    Console.WriteLine("\nUnable to extract transmission type");
+                    Console.WriteLine("Unable to extract transmission type");
                     continue;
                 }
 
                 try
                 {
-                    Console.Write($"\nReceived {type} form: " + client.ToString());
+                    Console.WriteLine($"Received {type} form: " + client.ToString());
                     switch (type)
                     {
                         case Transmission.TransmisisonType.Host:
@@ -123,7 +127,7 @@ class Program
 
                                 Reply success = new(Reply.Code.HostingSuccess);
                                 client.Send(success.Payload);
-                                Console.WriteLine("\nSuccessfully added new lobby: " + lobby.ToString());
+                                Console.WriteLine("Successfully added new lobby: " + lobby.ToString());
 
                                 break;
                             }
@@ -140,7 +144,7 @@ class Program
                                 LobbyQuery query = new(trms, false);
                                 query = new(result);
                                 client.Send(query.Payload);
-                                Console.WriteLine("\nSent back lobby query result to: " + client.ToString());
+                                Console.WriteLine("Sent back lobby query result to: " + client.ToString());
 
                                 break;
                             }
@@ -149,7 +153,7 @@ class Program
                                 JoinRequest jr = new(trms, false);
                                 if (jr.LobbyID is null || jr.LobbyPassword is null)
                                 {
-                                    Console.Write("\nJoin request was invalid");
+                                    Console.WriteLine("Join request was invalid");
                                     break;
                                 }
 
@@ -159,7 +163,7 @@ class Program
                                     if (lobby.Password == jr.LobbyPassword.Value)
                                     {
                                         lobby.JoinedClients.Add(client);
-                                        Console.WriteLine("\nAdded client to lobby: " + lobby.ToString());
+                                        Console.WriteLine("Added client to lobby: " + lobby.ToString());
                                         string ipPort = lobby.Host.Address.MapToIPv4().ToString() + ":" + lobby.Host.Port;
                                         jr = new(ipPort);
                                         client.Send(jr.Payload);
@@ -168,10 +172,24 @@ class Program
                                     {
                                         Reply r = new(Reply.Code.WrongPassword);
                                         client.Send(r.Payload);
-                                        Console.Write("\nIncorrect password was provided");
+                                        Console.WriteLine("Incorrect password was provided");
                                     }
                                 }
 
+                                break;
+                            }
+                        case Transmission.TransmisisonType.Reply:
+                            {
+                                Reply r = new(trms);
+                                switch (r.ReplyCode)
+                                {
+                                    case Reply.Code.Disconnect:
+                                        {
+                                            PendingDisconnected.Enqueue(client);
+                                            Console.WriteLine("Client has been added to disconnection queue: " + client);
+                                            break;
+                                        }
+                                }
                                 break;
                             }
                         default: throw new UnknownTransmission();
@@ -179,19 +197,24 @@ class Program
                 }
                 catch (UnknownTransmission)
                 {
-                    Console.WriteLine("\nSkipping unknown transmisison type");
+                    Console.WriteLine("Skipping unknown transmisison type");
                 }
                 catch (Exception e)
                 {
                     Console.Error.WriteLine(e);
                     Reply err = new(Reply.ErrorTypeCodeMap[type]);
-                    Console.WriteLine($"\nSending back {err.ReplyCode} reply to: " + client.ToString());
+                    Console.WriteLine($"Sending back {err.ReplyCode} reply to: " + client.ToString());
                     client.Send(err.Payload);
                 }
             }
         }
 
-        Looping = false;
+        // Remove pending disconnected client
+        while (PendingDisconnected.Count != 0)
+        {
+            var client = PendingDisconnected.Dequeue();
+            client.Disconnect();
+        }
 
         static ulong NewLobbyID()
         {
