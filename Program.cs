@@ -57,7 +57,7 @@ class Program
                 Reply dc = new(Reply.Code.Disconnect);
                 client.Send(dc.Payload);
                 client.Disconnect();
-                Console.WriteLine("Disconnected client:" + client);
+                Console.WriteLine("Disconnected client:" + client.ToString());
             }
         }
         static async Task AcceptConnections()
