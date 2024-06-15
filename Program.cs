@@ -30,7 +30,7 @@ class Program
 
     private static readonly CancellationTokenSource CloseTokenSource = new();
     public static bool Closing { get; private set; }
-    public static void Main()
+    public static async void Main()
     {
         Console.WriteLine("Server started");
         _ = AcceptConnections();
@@ -42,17 +42,17 @@ class Program
                 Closing = true;
                 Console.WriteLine("Server closing");
                 CloseTokenSource.Cancel();
-                CloseConnections();
+                await CloseConnectionsAsync();
                 Console.WriteLine("Server closed");
             }
         }
 
-        static void CloseConnections()
+        static async Task CloseConnectionsAsync()
         {
             foreach (var client in Clients)
             {
                 Reply dc = new(Reply.Code.Disconnect);
-                client.Send(dc.Payload);
+                await client.Send(dc.Payload);
                 client.Disconnect();
                 Console.WriteLine("Disconnected client:" + client.ToString());
             }
@@ -128,7 +128,7 @@ class Program
                                 OpenLobbies.Add(id, lobby);
 
                                 Reply success = new(Reply.Code.HostingSuccess);
-                                client.Send(success.Payload);
+                                _ = client.Send(success.Payload);
                                 Console.WriteLine("Successfully added new lobby: " + lobby.ToString());
 
                                 break;
@@ -145,7 +145,7 @@ class Program
 
                                 LobbyQuery query = new(trms, false);
                                 query = new(result);
-                                client.Send(query.Payload);
+                                _ = client.Send(query.Payload);
                                 Console.WriteLine("Sent back lobby query result to: " + client.ToString());
 
                                 break;
@@ -168,12 +168,12 @@ class Program
                                         Console.WriteLine("Added client to lobby: " + lobby.ToString());
                                         string ipPort = lobby.Host.Address.MapToIPv4().ToString() + ":" + lobby.Host.Port;
                                         jr = new(ipPort);
-                                        client.Send(jr.Payload);
+                                        _ = client.Send(jr.Payload);
                                     }
                                     else
                                     {
                                         Reply r = new(Reply.Code.WrongPassword);
-                                        client.Send(r.Payload);
+                                        _ = client.Send(r.Payload);
                                         Console.WriteLine("Incorrect password was provided");
                                     }
                                 }
@@ -206,7 +206,7 @@ class Program
                     Console.Error.WriteLine(e);
                     Reply err = new(Reply.ErrorTypeCodeMap[type]);
                     Console.WriteLine($"Sending back {err.ReplyCode} reply to: " + client.ToString());
-                    client.Send(err.Payload);
+                    _ = client.Send(err.Payload);
                 }
             }
         }
@@ -215,7 +215,9 @@ class Program
         while (PendingDisconnected.Count != 0)
         {
             var client = PendingDisconnected.Dequeue();
+            ClientTransmissionsQueue.Remove(client);
             client.Disconnect();
+            Console.WriteLine("Client has been disconnected" + client.ToString());
         }
 
         static ulong NewLobbyID()
