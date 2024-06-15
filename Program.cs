@@ -30,7 +30,7 @@ class Program
 
     private static readonly CancellationTokenSource CloseTokenSource = new();
     public static bool Closing { get; private set; }
-    public static async void Main()
+    public static void Main()
     {
         Console.WriteLine("Server started");
         _ = AcceptConnections();
@@ -42,17 +42,17 @@ class Program
                 Closing = true;
                 Console.WriteLine("Server closing");
                 CloseTokenSource.Cancel();
-                await CloseConnectionsAsync();
+                CloseConnectionsAsync();
                 Console.WriteLine("Server closed");
             }
         }
 
-        static async Task CloseConnectionsAsync()
+        static void CloseConnectionsAsync()
         {
             foreach (var client in Clients)
             {
                 Reply dc = new(Reply.Code.Disconnect);
-                await client.Send(dc.Payload);
+                client.Send(dc.Payload).Wait();
                 client.Disconnect();
                 Console.WriteLine("Disconnected client:" + client.ToString());
             }
