@@ -217,8 +217,6 @@ class Program
         {
             var client = PendingDisconnected.Dequeue();
             ClientTransmissionsQueue.Remove(client);
-            Reply da = new(Reply.Code.DisconnectAck);
-            client.Send(da.Payload).Wait();
             client.Disconnect();
             Clients.Remove(client);
             Console.WriteLine("Client has been disconnected" + client.ToString());
