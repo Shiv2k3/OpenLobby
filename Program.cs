@@ -34,12 +34,9 @@ class Program
     {
         Console.WriteLine("Server started");
         _ = AcceptConnections();
-        int counter = 0;
-        while (true)
+        while (!Closing)
         {
             LoopOnce();
-            Console.SetCursorPosition(Console.WindowWidth - 10, 0);
-            Console.Write(counter++);
             if (Console.KeyAvailable)
             {
                 Closing = true;
