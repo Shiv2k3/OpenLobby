@@ -37,6 +37,7 @@ class Program
         while (!Closing)
         {
             LoopOnce();
+            Thread.Sleep(500);
             if (Console.KeyAvailable)
             {
                 Closing = true;
