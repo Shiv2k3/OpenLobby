@@ -21,14 +21,19 @@ class Program
         }
     }
 
-    private static readonly Client Listener = new(ListenerPort);
+    // Server's listener client
+    private static readonly CancellationTokenSource CloseTokenSource = new();
+    private static readonly Client Listener = new(ListenerPort, CloseTokenSource.Token);
+
+    // Remote clients and pending client connect/disconnect
     private static readonly List<Client> Clients = [];
     private static readonly Queue<Client> PendingConnected = [];
     private static readonly Queue<Client> PendingDisconnected = [];
+
     private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
+    
     private static readonly Dictionary<ulong, Lobby> OpenLobbies = [];
 
-    private static readonly CancellationTokenSource CloseTokenSource = new();
     public static bool Closing { get; private set; }
     public static void Main()
     {
@@ -48,17 +53,6 @@ class Program
             }
         }
 
-        static void CloseConnections()
-        {
-            foreach (var client in Clients)
-            {
-                Reply dc = new(Reply.Code.DisconnectInit);
-                _ = client.Send(dc.Payload);
-                Thread.Sleep(1000);
-                client.Disconnect();
-                Console.WriteLine("Disconnected client:" + client.ToString());
-            }
-        }
         static async Task AcceptConnections()
         {
             while (!Closing)
@@ -74,9 +68,21 @@ class Program
                 }
             }
         }
+        static void CloseConnections()
+        {
+            foreach (var client in Clients)
+            {
+                Reply dc = new(Reply.Code.DisconnectInit);
+                _ = client.Send(dc.Payload);
+                Thread.Sleep(1000);
+                string? str = client.ToString();
+                client.Disconnect();
+                Console.WriteLine("Disconnected client:" + str);
+            }
+        }
     }
 
-    private static void LoopOnce()
+    private static async void LoopOnce()
     {
         // Enqueue pending connected clients
         var pending = PendingConnected.ToArray();
@@ -90,8 +96,8 @@ class Program
         // Receive transmission
         foreach (var client in Clients)
         {
-            var (success, trms) = client.TryGetTransmission();
-            if (success)
+            var (complete, trms) = await client.TryGetTransmission();
+            if (complete)
             {
 #nullable disable
                 ClientTransmissionsQueue[client].Enqueue(trms);
