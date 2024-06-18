@@ -66,7 +66,7 @@ class Program
                 try
                 {
                     var newClient = await Listener.Accept(CloseTokenSource.Token);
-                    if (Clients.Contains(newClient))
+                    if (!Clients.Contains(newClient))
                     {
                         PendingConnected.Enqueue(newClient);
                         Console.WriteLine("New client connected: " + newClient.ToString());
