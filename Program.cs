@@ -74,7 +74,6 @@ class Program
             {
                 Reply dc = new(Reply.Code.DisconnectInit);
                 _ = client.Send(dc.Payload);
-                Thread.Sleep(1000);
                 string? str = client.ToString();
                 client.Disconnect();
                 Console.WriteLine("Disconnected client:" + str);
