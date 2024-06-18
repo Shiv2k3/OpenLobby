@@ -22,7 +22,7 @@ class Program
     }
 
     private static readonly Client Listener = new(ListenerPort);
-    private static readonly HashSet<Client> Clients = [];
+    private static readonly List<Client> Clients = [];
     private static readonly Queue<Client> PendingConnected = [];
     private static readonly Queue<Client> PendingDisconnected = [];
     private static readonly Dictionary<Client, Queue<Transmission>> ClientTransmissionsQueue = [];
@@ -66,15 +66,8 @@ class Program
                 try
                 {
                     var newClient = await Listener.Accept(CloseTokenSource.Token);
-                    if (!Clients.Contains(newClient))
-                    {
-                        PendingConnected.Enqueue(newClient);
-                        Console.WriteLine("New client connected: " + newClient.ToString());
-                    }
-                    else
-                    {
-                        Console.WriteLine("Ignoring reconnection attempt by connected client");
-                    }
+                    PendingConnected.Enqueue(newClient);
+                    Console.WriteLine("New client connected: " + newClient.ToString());
                 }
                 catch
                 {
